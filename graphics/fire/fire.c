@@ -50,7 +50,7 @@ static const unsigned char palette[] = {
 #define W 320
 #define H 240
 #define S 2
-static int8_t state[H][W];
+static signed char state[H][W];
 
 static uint32_t
 pcg32(void)
