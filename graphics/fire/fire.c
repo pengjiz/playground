@@ -1,35 +1,34 @@
 /*
  * Fire animation.
  *
- * This implements the fire effect similar to [1] but uses a different algorithm
- * which is closer to [2].
+ * This implements the fire effect similar to [0] but uses a different algorithm
+ * which is closer to [1].
  *
- * [1]: https://github.com/fabiensanglard/DoomFirePSX
- * [2]: https://github.com/skeeto/webgl-fire
+ * [0]: https://github.com/fabiensanglard/DoomFirePSX
+ * [1]: https://github.com/skeeto/webgl-fire
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 
 /* Random seed. */
 #ifndef SEED
-#define SEED 0
+# define SEED 0
 #endif
 
 /* Number of frames to render. */
 #ifndef NFRAMES
-#define NFRAMES 300
+# define NFRAMES 300
 #endif
 
 /* Strength of the horizontal wind. */
 #ifndef HWIND
-#define HWIND 0
+# define HWIND 0
 #endif
 
 /* Strength of the vertical wind. */
 #ifndef VWIND
-#define VWIND 0
+# define VWIND 0
 #endif
 
 static const unsigned char palette[] = {
@@ -69,9 +68,9 @@ pcg32(void)
  * This function is used to enable parallel computation for a whole row of
  * cells. For each cell 16 random bits are sufficient.
  *
- * This hash function is from [1].
+ * This hash function is from [0].
  *
- * [1]: https://github.com/skeeto/hash-prospector
+ * [0]: https://github.com/skeeto/hash-prospector
  */
 static uint16_t
 hash16(uint16_t x)
@@ -145,8 +144,7 @@ main(void)
                 state[H - 1][j] = 0;
         }
         step();
-        if (render())
-            exit(EXIT_FAILURE);
+        if (render()) return 1;
     }
     return 0;
 }
