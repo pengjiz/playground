@@ -64,17 +64,17 @@ enum status {
     EXPOSE_SEVERE_ALT = -2
 };
 
-#ifdef USE_REDIRECT
-# define OPTSTR "arqh"
 static int redirect;
-#else
-# define OPTSTR "aqh"
-#endif
 static int quiet;
 static char errstr[256] = {0};
 #define E(...) snprintf(errstr, sizeof(errstr) - 1, __VA_ARGS__)
 #define HT_ESLOTS 11
 #define HT_NLIMIT (1 << 10)
+#ifdef USE_REDIRECT
+# define OPTSTR "arqh"
+#else
+# define OPTSTR "aqh"
+#endif
 
 static void
 message(const char *fmt, ...)
@@ -157,6 +157,7 @@ save_ctx(pid_t tid, int fd, void *src, size_t count)
     struct ht_slot *slot = ht_lookup(tid);
     if (!slot) return EXPOSE_SEVERE;
     ASSERT(!slot->tid);
+    ASSERT(ht.len < HT_NLIMIT);
     ht.len++;
     slot->tid = tid;
     slot->fd = fd;
@@ -174,6 +175,7 @@ load_ctx(pid_t tid, int *fd, void **src, size_t *count)
     if (fd) *fd = slot->fd;
     if (src) *src = slot->src;
     if (count) *count = slot->count;
+    ASSERT(ht.len > 0);
     ht.len--;
     memset(slot, 0, sizeof(*slot));
     return EXPOSE_OK;
@@ -310,11 +312,11 @@ attach(pid_t pid, int all)
     if (r < 0) goto econt;
     return EXPOSE_OK;
 
-eseize:
-    E("failed to seize thread %d [errno %d]", tid, errno);
-    goto fail;
 ethreads:
     E("failed to get threads of process [errno %d]", errno);
+    goto fail;
+eseize:
+    E("failed to seize thread %d [errno %d]", tid, errno);
     goto fail;
 estop:
     E("failed to stop process [errno %d]", errno);
@@ -367,53 +369,54 @@ handle_syscall(pid_t tid)
         count = info.entry.args[2];
         r = save_ctx(tid, fd, src, count);
         if (r < 0) goto elimit;
-#ifdef USE_REDIRECT
         if (redirect) {
+#ifdef USE_REDIRECT
             r = ptrace(PTRACE_POKEUSER, tid, USER_SCNR, SCNR_NOP);
+#else
+            ASSERT(0);
+            r = 0;
+#endif
             if (r < 0) goto escnr;
         }
-#endif
         break;
 
     case PTRACE_SYSCALL_INFO_EXIT:
         r = load_ctx(tid, &fd, &src, &count);
         if (r) return EXPOSE_OK;
-        if (!info.exit.is_error) count = info.exit.rval;
+        int failed = info.exit.is_error;
+        int muted = redirect && failed && info.exit.rval == -ENOSYS;
+        if (failed && !muted) goto enotme;
+        if (!failed) count = info.exit.rval;
+
         dst = malloc(count);
         if (!dst) goto ewrite;
         if (!pmemcpy(tid, dst, src, count)) goto ewrite;
         ssize_t n = write(fd, dst, count);
-        if (n < 0) goto ewrite;
-        if ((size_t)n < count) goto epartial;
+        if (muted) {
 #ifdef USE_REDIRECT
-        if (redirect && info.exit.is_error && info.exit.rval == -ENOSYS) {
-            r = ptrace(PTRACE_POKEUSER, tid, USER_SCRV, n);
+            r = ptrace(PTRACE_POKEUSER, tid, USER_SCRV, n < 0 ? 0 : n);
+#else
+            ASSERT(0);
+            r = 0;
+#endif
             if (r < 0) goto escrv;
         }
-#endif
+        if (n < 0) goto ewrite;
+        if ((size_t)n < count) goto epartial;
+        break;
     }
 
     free(dst);
     return EXPOSE_OK;
 
-elimit:
-    E("too many threads");
-    r = EXPOSE_MILD;
-    goto fail;
 einfo:
     E("failed to get system call information [errno %d]", errno);
     r = errno == ESRCH ? EXPOSE_EXPECTED : EXPOSE_MILD;
     goto fail;
-#ifdef USE_REDIRECT
-escnr:
-    E("failed to redirect output [errno %d]", errno);
-    r = errno == ESRCH ? EXPOSE_EXPECTED : EXPOSE_MILD_ALT;
+elimit:
+    E("too many threads");
+    r = EXPOSE_MILD;
     goto fail;
-escrv:
-    E("failed to redirect output [errno %d]", errno);
-    r = errno == ESRCH ? EXPOSE_EXPECTED : EXPOSE_SEVERE;
-    goto fail;
-#endif
 ewrite:
     E("failed to write output [errno %d]", errno);
     r = EXPOSE_MILD;
@@ -421,6 +424,18 @@ ewrite:
 epartial:
     E("partial writes happened");
     r = EXPOSE_MILD_ALT;
+    goto fail;
+enotme:
+    E("errors happened in thread");
+    r = EXPOSE_MILD;
+    goto fail;
+escnr:
+    E("failed to redirect output [errno %d]", errno);
+    r = errno == ESRCH ? EXPOSE_EXPECTED : EXPOSE_MILD_ALT;
+    goto fail;
+escrv:
+    E("failed to redirect output [errno %d]", errno);
+    r = errno == ESRCH ? EXPOSE_EXPECTED : EXPOSE_SEVERE;
     goto fail;
 
 fail:
@@ -526,9 +541,7 @@ main(int argc, char **argv)
 {
     pid_t pid;
     int all = 0;
-#ifdef USE_REDIRECT
     redirect = 0;
-#endif
     quiet = 0;
 
     int opt;
