@@ -112,7 +112,7 @@ hash32(uint32_t x)
 struct ht_slot {
     pid_t tid;
     int fd;
-    void *src;
+    uintptr_t src;
     size_t count;
 };
 
@@ -152,7 +152,7 @@ ht_lookup(pid_t tid)
 }
 
 static enum status
-save_ctx(pid_t tid, int fd, void *src, size_t count)
+save_ctx(pid_t tid, int fd, uintptr_t src, size_t count)
 {
     struct ht_slot *slot = ht_lookup(tid);
     if (!slot) return EXPOSE_SEVERE;
@@ -167,7 +167,7 @@ save_ctx(pid_t tid, int fd, void *src, size_t count)
 }
 
 static enum status
-load_ctx(pid_t tid, int *fd, void **src, size_t *count)
+load_ctx(pid_t tid, int *fd, uintptr_t *src, size_t *count)
 {
     struct ht_slot *slot = ht_lookup(tid);
     if (!slot || !slot->tid) return EXPOSE_EXPECTED;
@@ -332,17 +332,17 @@ fail:
 }
 
 static void *
-pmemcpy(pid_t pid, void *dst, void *src, size_t n)
+pmemcpy(pid_t pid, void *dst, uintptr_t src, size_t n)
 {
     struct iovec local = {dst, n};
-    struct iovec remote = {src, n};
+    struct iovec remote = {(void *)src, n};
     ssize_t r = process_vm_readv(pid, &local, 1, &remote, 1, 0);
     if (r < 0) return NULL;
     return dst;
 }
 
 static int
-match_syscall(struct ptrace_syscall_info *info)
+match_syscall(const struct ptrace_syscall_info *info)
 {
     if (info->entry.nr != SYS_write) return 0;
     int fd = info->entry.args[0];
@@ -359,13 +359,13 @@ handle_syscall(pid_t tid)
     if (r < 0) goto einfo;
 
     int fd;
-    void *src;
+    uintptr_t src;
     size_t count;
     switch (info.op) {
     case PTRACE_SYSCALL_INFO_ENTRY:
         if (!match_syscall(&info)) return EXPOSE_OK;
         fd = info.entry.args[0];
-        src = (void *)info.entry.args[1];
+        src = info.entry.args[1];
         count = info.entry.args[2];
         r = save_ctx(tid, fd, src, count);
         if (r < 0) goto elimit;
