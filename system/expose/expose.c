@@ -387,6 +387,7 @@ handle_syscall(pid_t tid)
         int muted = redirect && failed && info.exit.rval == -ENOSYS;
         if (failed && !muted) goto enotme;
         if (!failed) count = info.exit.rval;
+        if (!count) return EXPOSE_OK;
 
         dst = malloc(count);
         if (!dst) goto ewrite;
