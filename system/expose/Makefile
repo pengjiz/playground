@@ -1,7 +1,7 @@
 .POSIX:
 CC = gcc
 CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Og -g
-CPPFLAGS = -DDEBUG -DUSE_REDIRECT
+CPPFLAGS = -DUSE_REDIRECT
 LDFLAGS =
 LDLIBS =
 

@@ -45,14 +45,14 @@
 # endif
 #endif
 
-#ifdef DEBUG
+#ifdef NDEBUG
+# define ASSERT(c)
+#else
 # if __GNUC__
 #  define ASSERT(c) if (!(c)) __builtin_trap()
 # else
 #  define ASSERT(c) if (!(c)) *(volatile int *)NULL = 0
 # endif
-#else
-# define ASSERT(c)
 #endif
 
 enum status {
@@ -621,5 +621,5 @@ main(int argc, char **argv)
 /* Local Variables: */
 /* flycheck-gcc-language-standard: "c99" */
 /* flycheck-gcc-pedantic: t */
-/* flycheck-gcc-definitions: ("DEBUG" "USE_REDIRECT") */
+/* flycheck-gcc-definitions: ("USE_REDIRECT") */
 /* End: */
