@@ -1,6 +1,6 @@
 .POSIX:
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Og -g
+CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -g3 -fsanitize=address,undefined
 CPPFLAGS = -DUSE_REDIRECT
 LDFLAGS =
 LDLIBS =
