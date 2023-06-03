@@ -13,7 +13,7 @@ fire: fire.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ fire.c $(LDLIBS)
 
 fire.mp4: fire
-	./fire | ffmpeg -framerate 30 -i - $@
+	./fire | ffmpeg -y -framerate 30 -i - $@
 
 TAGS: fire.c
 	ctags -f $@ -e fire.c
