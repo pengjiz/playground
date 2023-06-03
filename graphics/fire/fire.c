@@ -55,10 +55,10 @@ static uint32_t
 pcg32(void)
 {
     static uint64_t s = SEED;
-    s = s * UINT64_C(0x7e8c583ddff43de5) + UINT64_C(0xd0c5e4a55ca9db29);
+    s = s * 0x7e8c583ddff43de5U + 0xd0c5e4a55ca9db29U;
     uint32_t r = s >> 32;
     r ^= r >> 16;
-    r *= UINT32_C(0xc6ba12c7);
+    r *= 0xc6ba12c7U;
     return r;
 }
 
@@ -76,9 +76,9 @@ static uint16_t
 hash16(uint16_t x)
 {
     x ^= x >> 8;
-    x *= UINT16_C(0x88b5);
+    x *= 0x88b5U;
     x ^= x >> 7;
-    x *= UINT16_C(0xdb2d);
+    x *= 0xdb2dU;
     x ^= x >> 9;
     return x;
 }

@@ -102,9 +102,9 @@ static uint32_t
 hash32(uint32_t x)
 {
     x ^= x >> 16;
-    x *= UINT32_C(0x7feb352d);
+    x *= 0x7feb352dU;
     x ^= x >> 15;
-    x *= UINT32_C(0x846ca68b);
+    x *= 0x846ca68bU;
     x ^= x >> 16;
     return x;
 }
@@ -137,7 +137,7 @@ static struct ht_slot *
 ht_lookup(pid_t tid)
 {
     ASSERT(tid > 0);
-    static const uint16_t mask = (UINT16_C(1) << HT_ESLOTS) - 1;
+    static const uint16_t mask = (1U << HT_ESLOTS) - 1;
     uint32_t hash = hash32(tid);
     uint16_t idx = hash;
     uint16_t step = (hash >> (32 - HT_ESLOTS)) | 1;
