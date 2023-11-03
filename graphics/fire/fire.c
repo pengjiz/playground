@@ -150,6 +150,7 @@ main(void)
 }
 
 /* Local Variables: */
+/* flycheck-disabled-checkers: (c/c++-clang) */
 /* flycheck-gcc-language-standard: "c99" */
 /* flycheck-gcc-pedantic: t */
 /* flycheck-gcc-openmp: t */
