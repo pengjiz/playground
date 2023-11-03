@@ -4,6 +4,7 @@ CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -g3 -fsanitize=address,undefined -fop
 CPPFLAGS =
 LDFLAGS =
 LDLIBS =
+ETAGS = ctags -e
 
 .PHONY: all clean
 
@@ -16,7 +17,7 @@ fire.mp4: fire
 	./fire | ffmpeg -y -framerate 30 -i - $@
 
 TAGS: fire.c
-	ctags -f $@ -e fire.c
+	$(ETAGS) -o $@ fire.c
 
 clean:
 	rm -f fire fire.mp4 TAGS
