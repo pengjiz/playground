@@ -1,15 +1,13 @@
 /*
- * Coroutine implementation for x86-64 Linux.
+ * Prime number generator using stackful coroutines.
  *
- * This is basically [0] ported to Linux. This implementation also uses a few
- * GNU C extensions, so probably it only works with GCC or Clang.
- *
- * As a demo, a prime number generator is implemented using coroutines. The demo
+ * This is basically [0] ported to x86-64 Linux. The implementation uses a few
+ * GNU C extensions, and should work with GCC and Clang. Note that this program
  * could be optionally compiled for a freestanding environment without using any
  * standard system startup files or libraries.
  *
- * This is definitely a neat trick, but it also has a few non-negligible
- * limitations. Frankly it could be inappropriate for serious projects.
+ * The coroutine implementation is definitely neat, but it also has a few
+ * limitations. Frankly it might be inappropriate for serious projects.
  *
  * [0]: https://github.com/skeeto/scratch/blob/master/misc/coro.c
  */
