@@ -8,13 +8,13 @@ ETAGS = ctags -e
 
 .PHONY: all clean
 
-all: coro
+all: primes
 
-coro: coro.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ coro.c $(LDLIBS)
+primes: primes.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ primes.c $(LDLIBS)
 
-TAGS: coro.c
-	$(ETAGS) -o $@ coro.c
+TAGS: primes.c
+	$(ETAGS) -o $@ primes.c
 
 clean:
-	rm -f coro TAGS
+	rm -f primes TAGS
