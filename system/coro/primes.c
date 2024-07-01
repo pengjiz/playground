@@ -56,7 +56,7 @@ mmap(void *addr, size length, int prot, int flags, int fd, size offset)
 #ifdef NDEBUG
 # define ASSERT(c)
 #else
-# define ASSERT(c) if(!(c)) *(volatile int *)0 = 0
+# define ASSERT(c) if (!(c)) *(volatile int *)0 = 0
 #endif
 
 #define ARENA_CAP (1 << 24)
